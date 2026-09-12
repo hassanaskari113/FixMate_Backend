@@ -2,6 +2,7 @@ import django_filters
 from django.db import transaction
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -26,6 +27,10 @@ class Pagination(PageNumberPagination):
 
 # Google Auth View
 class GoogleAuthView(APIView):
+    @extend_schema(
+        request=GoogleAuthRequestSerializer,
+        responses=GoogleAuthResponseSerializer,
+    )
     def post(self, request):
         id_token = request.data.get("id_token", None)
         if id_token is None:

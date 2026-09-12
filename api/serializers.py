@@ -22,6 +22,21 @@ from core.models import (
 )
 
 
+# google auth request serializers
+class GoogleAuthRequestSerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+
+
+# google auth response serializers
+class GoogleAuthResponseSerializer(serializers.Serializer):
+    access_token = serializers.CharField()
+    refresh_token = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    is_created = serializers.BooleanField()
+
+
 # User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -143,12 +158,12 @@ class ProviderProfileSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-    def get_completed_jobs(self, obj):
+    def get_completed_jobs(self, obj) -> int:
         return Booking.objects.filter(
             offer__service_provider=obj, status=BookingStatus.COMPLETED
         ).count()
 
-    def get_avg_rating(self, obj):
+    def get_avg_rating(self, obj) -> float:
         avg_rating = (
             Review.objects.filter(booking__offer__service_provider=obj)
             .aggregate(avg_rating=Avg("rating"))
