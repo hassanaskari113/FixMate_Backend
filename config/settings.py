@@ -160,6 +160,7 @@ REST_FRAMEWORK = {
 MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "FixMate API",
     "DESCRIPTION": "API for the FixMate service marketplace platform.",
