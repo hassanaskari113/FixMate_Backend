@@ -759,25 +759,30 @@ class BookingViewSet(viewsets.ModelViewSet):
     )
     pagination_class = Pagination
 
-    def get_permissions(self):
-        if self.action == "list":
-            return [IsAuthenticated()]
-        elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.PROVIDER
-        ):
-            return [IsAuthenticated(), IsBookingProviderOrStaff()]
-        elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.CUSTOMER
-        ):
-            return [IsAuthenticated(), IsBookingCustomerOrStaff()]
-        elif self.action in ("create", "update", "partial_update", "destroy"):
-            return [IsAuthenticated(), IsStaff()]
-        elif self.action == "cancel_booking":
-            return [IsAuthenticated(), IsBookingCustomerOrProviderOrStaff()]
-        elif self.action == "complete_booking":
-            return [IsAuthenticated(), IsBookingCustomerOrStaff()]
-        else:
-            return [IsAuthenticated()]
+
+def get_permissions(self):
+    if self.action == "list":
+        return [IsAuthenticated()]
+    elif (
+        self.action == "retrieve"
+        and self.request.user.is_authenticated
+        and self.request.user.role == RoleStatus.PROVIDER
+    ):
+        return [IsAuthenticated(), IsBookingProviderOrStaff()]
+    elif (
+        self.action == "retrieve"
+        and self.request.user.is_authenticated
+        and self.request.user.role == RoleStatus.CUSTOMER
+    ):
+        return [IsAuthenticated(), IsBookingCustomerOrStaff()]
+    elif self.action in ("create", "update", "partial_update", "destroy"):
+        return [IsAuthenticated(), IsStaff()]
+    elif self.action == "cancel_booking":
+        return [IsAuthenticated(), IsBookingCustomerOrProviderOrStaff()]
+    elif self.action == "complete_booking":
+        return [IsAuthenticated(), IsBookingCustomerOrStaff()]
+    else:
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         if self.request.user.is_staff:
