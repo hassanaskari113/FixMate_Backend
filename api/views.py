@@ -400,11 +400,19 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        if self.action == "list" and self.request.user.role == RoleStatus.CUSTOMER:
+        if (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
+        ):
             return self.queryset.filter(customer=self.request.user)
-        elif self.action == "list" and self.request.user.role == RoleStatus.PROVIDER:
+        elif (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
+        ):
             areas = self.request.user.provider_profile.service_areas.all()
-            if not areas:
+            if not areas.exists():
                 return self.queryset.none()
             area_query = Q()
             for area in areas:
@@ -426,11 +434,15 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return [IsAuthenticated()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.CUSTOMER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
         ):
             return [IsAuthenticated(), IsServiceRequestOwnerOrStaff()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.PROVIDER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
         ):
             return [IsAuthenticated(), IsEligibleProviderOrStaff()]
         elif self.action == "create":
@@ -621,11 +633,15 @@ class OfferViewSet(viewsets.ModelViewSet):
         if self.action == "list":
             return [IsAuthenticated()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.PROVIDER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
         ):
             return [IsAuthenticated(), IsOfferOwnerOrStaff()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.CUSTOMER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
         ):
             return [IsAuthenticated(), IsOfferOnUserRequestOrStaff()]
         elif self.action == "create":
@@ -640,11 +656,19 @@ class OfferViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        if self.action == "list" and self.request.user.role == RoleStatus.PROVIDER:
+        if (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
+        ):
             return self.queryset.filter(
                 service_provider=self.request.user.provider_profile
             )
-        elif self.action == "list" and self.request.user.role == RoleStatus.CUSTOMER:
+        elif (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
+        ):
             return self.queryset.filter(service_request__customer=self.request.user)
         else:
             return self.queryset
@@ -759,40 +783,47 @@ class BookingViewSet(viewsets.ModelViewSet):
     )
     pagination_class = Pagination
 
-
-def get_permissions(self):
-    if self.action == "list":
-        return [IsAuthenticated()]
-    elif (
-        self.action == "retrieve"
-        and self.request.user.is_authenticated
-        and self.request.user.role == RoleStatus.PROVIDER
-    ):
-        return [IsAuthenticated(), IsBookingProviderOrStaff()]
-    elif (
-        self.action == "retrieve"
-        and self.request.user.is_authenticated
-        and self.request.user.role == RoleStatus.CUSTOMER
-    ):
-        return [IsAuthenticated(), IsBookingCustomerOrStaff()]
-    elif self.action in ("create", "update", "partial_update", "destroy"):
-        return [IsAuthenticated(), IsStaff()]
-    elif self.action == "cancel_booking":
-        return [IsAuthenticated(), IsBookingCustomerOrProviderOrStaff()]
-    elif self.action == "complete_booking":
-        return [IsAuthenticated(), IsBookingCustomerOrStaff()]
-    else:
-        return [IsAuthenticated()]
+    def get_permissions(self):
+        if self.action == "list":
+            return [IsAuthenticated()]
+        elif (
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
+        ):
+            return [IsAuthenticated(), IsBookingProviderOrStaff()]
+        elif (
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
+        ):
+            return [IsAuthenticated(), IsBookingCustomerOrStaff()]
+        elif self.action in ("create", "update", "partial_update", "destroy"):
+            return [IsAuthenticated(), IsStaff()]
+        elif self.action == "cancel_booking":
+            return [IsAuthenticated(), IsBookingCustomerOrProviderOrStaff()]
+        elif self.action == "complete_booking":
+            return [IsAuthenticated(), IsBookingCustomerOrStaff()]
+        else:
+            return [IsAuthenticated()]
 
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        if self.action == "list" and self.request.user.role == RoleStatus.CUSTOMER:
+        if (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
+        ):
             return self.queryset.filter(
                 offer__service_request__customer=self.request.user
             )
 
-        elif self.action == "list" and self.request.user.role == RoleStatus.PROVIDER:
+        elif (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
+        ):
             return self.queryset.filter(
                 offer__service_provider=self.request.user.provider_profile
             )
@@ -906,11 +937,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
         elif self.action in ("update", "partial_update", "destroy"):
             return [IsAuthenticated(), IsReviewOwnerOrStaff()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.PROVIDER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
         ):
             return [IsAuthenticated(), IsReviewProviderOrStaff()]
         elif (
-            self.action == "retrieve" and self.request.user.role == RoleStatus.CUSTOMER
+            self.action == "retrieve"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
         ):
             return [IsAuthenticated(), IsReviewOwnerOrStaff()]
 
@@ -920,12 +955,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return self.queryset
-        if self.action == "list" and self.request.user.role == RoleStatus.CUSTOMER:
+        if (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.CUSTOMER
+        ):
             return self.queryset.filter(
                 booking__offer__service_request__customer=self.request.user
             )
 
-        elif self.action == "list" and self.request.user.role == RoleStatus.PROVIDER:
+        elif (
+            self.action == "list"
+            and self.request.user.is_authenticated
+            and self.request.user.role == RoleStatus.PROVIDER
+        ):
             return self.queryset.filter(
                 booking__offer__service_provider=self.request.user.provider_profile
             )
